@@ -92,19 +92,30 @@ export default function InsightsPanel() {
           color="#fff"
         />
       </motion.div>
-<button 
-  className="clear-all-btn" 
-  onClick={() => {
-    if(window.confirm("Are you sure you want to clear all chat history? This cannot be undone.")) {
-      clearAllHistory();
-    }
-  }}
->
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-  </svg>
-  Clear All History
-</button>
+      <button
+        className="clear-all-btn"
+        onClick={() => {
+          if (
+            window.confirm(
+              "Are you sure you want to clear all chat history? This cannot be undone.",
+            )
+          ) {
+            clearAllHistory();
+          }
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+        >
+          <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        Clear All History
+      </button>
       <div
         style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}
       >

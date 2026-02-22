@@ -71,7 +71,6 @@ def _build_prompt(
 🚨 WEAK SUBJECT DETECTED: 
 - Use EXTREME BEGINNER analogies.
 - Use a Markdown TABLE to compare concepts.
-- Include image: ![Infographic](https://image.pollinations.ai/prompt/simple%20educational%20infographic%20of%20{question.replace(' ', '%20')}?nologo=true)
 """
 
     context = (

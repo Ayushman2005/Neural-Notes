@@ -1,83 +1,128 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
 
 export default function InteractiveQuiz({ quizData }) {
-  const [answers, setAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
 
-  const handleSelect = (qIndex, oIndex) => {
-    if (!submitted) {
-      setAnswers({ ...answers, [qIndex]: oIndex });
-    }
+  const handleOptionSelect = (qIndex, option) => {
+    if (isSubmitted) return;
+    setSelectedAnswers((prev) => ({ ...prev, [qIndex]: option }));
   };
 
-  const score = Object.keys(answers).reduce((acc, qIndex) => {
-    return acc + (answers[qIndex] === quizData[qIndex].answer ? 1 : 0);
-  }, 0);
+  const handleSubmit = () => {
+    let currentScore = 0;
+    quizData.forEach((q, index) => {
+      if (selectedAnswers[index] === q.correctAnswer) currentScore += 1;
+    });
+    setScore(currentScore);
+    setIsSubmitted(true);
+  };
 
   return (
-    <div className="interactive-quiz">
-      {quizData.map((q, i) => (
-        <motion.div 
-          key={i} 
-          className="quiz-card"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-        >
-          <h4 className="quiz-question">{i + 1}. {q.question}</h4>
-          <div className="quiz-options">
-            {q.options.map((opt, j) => {
-              const isSelected = answers[i] === j;
-              const isCorrect = submitted && q.answer === j;
-              const isWrong = submitted && isSelected && q.answer !== j;
-              
-              let btnClass = "quiz-opt-btn";
-              if (isSelected) btnClass += " selected";
-              if (isCorrect) btnClass += " correct";
-              if (isWrong) btnClass += " wrong";
+    <div
+      className="quiz-container"
+      style={{
+        background: "var(--bg-sidebar)",
+        padding: "24px",
+        borderRadius: "12px",
+        border: "1px solid var(--border-light)",
+      }}
+    >
+      <h3 style={{ marginBottom: "20px", color: "var(--text-primary)" }}>
+        Practice Quiz
+      </h3>
+
+      {quizData.map((q, qIndex) => (
+        <div key={qIndex} style={{ marginBottom: "24px" }}>
+          <p style={{ fontWeight: "600", marginBottom: "12px" }}>
+            {qIndex + 1}. {q.question}
+          </p>
+
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {q.options.map((option, oIndex) => {
+              const isSelected = selectedAnswers[qIndex] === option;
+              const isCorrect = isSubmitted && option === q.correctAnswer;
+              const isWrong =
+                isSubmitted && isSelected && option !== q.correctAnswer;
+
+              // Dynamic button styling for correct/wrong answers
+              let bg = "var(--bg-input)";
+              let border = "1px solid var(--border-light)";
+              let color = "var(--text-primary)";
+
+              if (isSelected) {
+                bg = "var(--bg-card-hover)";
+                border = "1px solid var(--accent-color)";
+              }
+              if (isCorrect) {
+                bg = "#10b98120";
+                border = "1px solid #10b981";
+                color = "#10b981";
+              }
+              if (isWrong) {
+                bg = "#ef444420";
+                border = "1px solid #ef4444";
+                color = "#ef4444";
+              }
 
               return (
-                <button 
-                  key={j} 
-                  className={btnClass}
-                  onClick={() => handleSelect(i, j)}
-                  disabled={submitted}
+                <button
+                  key={oIndex}
+                  onClick={() => handleOptionSelect(qIndex, option)}
+                  disabled={isSubmitted}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    background: bg,
+                    border: border,
+                    color: color,
+                    textAlign: "left",
+                    cursor: isSubmitted ? "not-allowed" : "pointer",
+                    transition: "all 0.2s",
+                  }}
                 >
-                  <span className="opt-letter">{["A", "B", "C", "D"][j]}</span>
-                  {opt}
+                  {option}
                 </button>
               );
             })}
           </div>
-          {submitted && (
-            <motion.div 
-              className="quiz-explanation"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-            >
-              {q.explanation}
-            </motion.div>
-          )}
-        </motion.div>
+        </div>
       ))}
-      
-      {!submitted ? (
-        <button 
-          className="quiz-submit-btn" 
-          onClick={() => setSubmitted(true)}
-          disabled={Object.keys(answers).length < quizData.length}
+
+      {!isSubmitted ? (
+        <button
+          onClick={handleSubmit}
+          disabled={Object.keys(selectedAnswers).length !== quizData.length}
+          style={{
+            width: "100%",
+            padding: "12px",
+            background: "var(--text-primary)",
+            color: "var(--bg-main)",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            border: "none",
+            cursor: "pointer",
+          }}
         >
           Submit Answers
         </button>
       ) : (
-        <motion.div 
-          className="quiz-score-display"
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "16px",
+            border: "1px solid #10b981",
+            borderRadius: "8px",
+            textAlign: "center",
+            color: "#10b981",
+            fontWeight: "bold",
+          }}
         >
-          Final Score: {score} / {quizData.length}
-        </motion.div>
+          Your Score: {score} / {quizData.length}
+        </div>
       )}
     </div>
   );

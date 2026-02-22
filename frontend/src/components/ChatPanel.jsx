@@ -131,7 +131,6 @@ export default function ChatPanel() {
       typeof overrideText === "string" ? overrideText : input.trim();
     if (!userText || !session || loading) return;
 
-    // Intent detection for roadmaps
     if (
       userText.toLowerCase().includes("learn") ||
       userText.toLowerCase().includes("roadmap")
@@ -141,52 +140,60 @@ export default function ChatPanel() {
       setActiveTopic(topic);
       setRoadmapData([
         {
-          title: "Foundations",
-          duration: "3 Hours",
-          description: "Basic core concepts and setup.",
+          title: "Basics & Foundations",
+          duration: "3h",
+          description: `Initial concepts of ${topic}.`,
         },
         {
-          title: "Implementation",
-          duration: "5 Hours",
-          description: "Hands-on logic and structured building.",
+          title: "Technical Application",
+          duration: "5h",
+          description: "Hands-on implementation and structure.",
         },
         {
-          title: "Advanced Application",
-          duration: "6 Hours",
-          description: "Integrating complex modules and testing.",
+          title: "Final Synthesis",
+          duration: "4h",
+          description: "Advanced integration and testing.",
         },
       ]);
-    }
-
-    if (typeof overrideText !== "string") {
-      setInput("");
-      if (textareaRef.current) textareaRef.current.style.height = "auto";
     }
 
     addMessage({ role: "user", content: userText });
     setLoading(true);
 
     try {
+      let finalQuestion = `Answer this: "${userText}". RULES: Format STRICTLY Pointwise. Use the SAME language as the question. No Images. Convert table data into spaced bullet points.`;
+
+      if (userText.toLowerCase().includes("quiz")) {
+        finalQuestion = `Generate a multiple-choice quiz based on: "${userText}". You MUST return ONLY a raw JSON array. Format exactly like this: [{"question": "Question text?", "options": ["Option A", "Option B", "Option C", "Option D"], "correctAnswer": "Option A"}]`;
+      }
+
       const payload = {
-        question: `Provide a direct, summarized, and pointwise answer to the following question. 
-                 The response must be written ONLY in the same language as the question. 
-                 Do not include any links, images, or conversational fillers: "${userText}"`,
+        question: finalQuestion,
         session_id: session.session_id,
         student_level: level,
         explanation_mode: "quick",
-        subject: subject || undefined,
       };
 
       const data = await askQuestion(payload);
+
+      const aiResponseText = String(
+        data.answer || data.message || "Data not available.",
+      );
+
       addMessage({
         role: "ai",
-        content: data.answer || data.message || "No data retrieved.",
+        content: data.answer || data.message || "Data not available.",
         suggestions: data.follow_up_suggestions,
       });
+      if (autoSpeak) {
+        speakText(aiResponseText);
+        setAutoSpeak(false); // Resets it so it doesn't read text-based chats out loud
+      }
     } catch (err) {
-      toast.error("Failed to get answer.");
+      toast.error("Failed to fetch answer.");
     } finally {
       setLoading(false);
+      setInput("");
     }
   };
 
@@ -364,19 +371,31 @@ export default function ChatPanel() {
                   {(() => {
                     if (msg.role === "ai") {
                       try {
-                        const cleanStr = msg.content
-                          .replace(/```json/g, "")
-                          .replace(/```/g, "")
-                          .trim();
-                        const parsedData = JSON.parse(cleanStr);
-                        if (
-                          Array.isArray(parsedData) &&
-                          parsedData[0]?.question &&
-                          parsedData[0]?.options
-                        ) {
-                          return <InteractiveQuiz quizData={parsedData} />;
+                        // 1. Find the exact start and end of the JSON array, ignoring any intro text
+                        const contentStr = msg.content || "";
+                        const jsonStart = contentStr.indexOf("[");
+                        const jsonEnd = contentStr.lastIndexOf("]");
+
+                        if (jsonStart !== -1 && jsonEnd !== -1) {
+                          // 2. Extract ONLY the JSON part
+                          const cleanJson = contentStr.substring(
+                            jsonStart,
+                            jsonEnd + 1,
+                          );
+                          const parsedData = JSON.parse(cleanJson);
+
+                          // 3. If it looks like a quiz array, render the Interactive component!
+                          if (
+                            Array.isArray(parsedData) &&
+                            parsedData[0]?.question &&
+                            parsedData[0]?.options
+                          ) {
+                            return <InteractiveQuiz quizData={parsedData} />;
+                          }
                         }
-                      } catch (e) {}
+                      } catch (e) {
+                        // If it fails to parse, it's just normal text. Move on and render as Markdown.
+                      }
                     }
 
                     return (
