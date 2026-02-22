@@ -16,6 +16,7 @@ backend/chroma_store/
 backend/studyai_memory.db
 backend/studyai_insights.db
 backend/.env
+backend/.env.example
 
 # Frontend
 frontend/node_modules/
@@ -31,4 +32,6 @@ frontend/.env
 
 # Env files (keep .example files)
 .env
-!.env.example
+.env.example
+
+.node_modules
