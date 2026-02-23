@@ -21,7 +21,7 @@ SAMPLE_FILES = [
 
 
 def seed():
-    print("\n🌱 StudyAI — Seeding Knowledge Base")
+    print("\n🌱 NeuralNotes — Seeding Knowledge Base")
     print("=" * 40)
 
     rag = RAGEngine()

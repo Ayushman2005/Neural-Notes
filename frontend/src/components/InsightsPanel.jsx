@@ -1,20 +1,26 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "../store";
 import { motion } from "framer-motion";
-import { useState } from "react";
 
 export default function InsightsPanel() {
-  const { insights, getElapsedSessionTime, setInsights } = useStore();
+  const { insights, getElapsedSessionTime, setInsights, clearAllHistory } =
+    useStore();
   const [sessionDisplay, setSessionDisplay] = useState("0m");
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSessionDisplay(getElapsedSessionTime());
-    }, 10000);
-    setSessionDisplay(getElapsedSessionTime());
-    return () => clearInterval(interval);
-  }, []);
+    // Safely handle session time updating without crashing if the function is unavailable temporarily
+    const updateSession = () => {
+      if (getElapsedSessionTime) {
+        setSessionDisplay(getElapsedSessionTime());
+      }
+    };
 
+    updateSession();
+    const interval = setInterval(updateSession, 10000);
+    return () => clearInterval(interval);
+  }, [getElapsedSessionTime]);
+
+  // Framer Motion Animation Variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -33,13 +39,64 @@ export default function InsightsPanel() {
       className="insights-panel"
       style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}
     >
+      {/* ── Fixed CSS for Velocity Bars ── */}
+      <style>{`
+        .velocity-container {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          height: 180px; 
+          padding-top: 20px;
+        }
+        .velocity-col {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          height: 100%;
+          justify-content: flex-end; /* Forces bars to align to the bottom */
+        }
+        .velocity-bar-wrapper {
+           height: 100%;
+           width: 16px;
+           background: var(--bg-sidebar); /* Creates a subtle track for the bar */
+           border-radius: 6px;
+           display: flex;
+           align-items: flex-end;
+           overflow: hidden;
+        }
+        .clear-all-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(239, 68, 68, 0.1);
+          color: #ef4444;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          padding: 10px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.2s;
+          margin-bottom: 32px;
+        }
+        .clear-all-btn:hover {
+          background: rgba(239, 68, 68, 0.2);
+        }
+      `}</style>
+
       <header style={{ marginBottom: "48px" }}>
         <h1
-          style={{ fontSize: "42px", fontWeight: "800", marginBottom: "8px" }}
+          style={{
+            fontSize: "42px",
+            fontWeight: "800",
+            marginBottom: "8px",
+            color: "var(--text-primary)",
+          }}
         >
           Daily Monitoring
         </h1>
-        <p style={{ color: "var(--text3)", fontSize: "16px" }}>
+        <p style={{ color: "var(--text-secondary)", fontSize: "16px" }}>
           Tracking your syllabus mastery and interaction velocity.
         </p>
       </header>
@@ -52,9 +109,9 @@ export default function InsightsPanel() {
         animate="show"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: "24px",
-          marginBottom: "40px",
+          marginBottom: "32px",
         }}
       >
         <MetricCard
@@ -62,102 +119,105 @@ export default function InsightsPanel() {
           icon="🔥"
           label="Study Streak"
           value="5 Days"
-          color="#fff"
         />
         <MetricCard
           variants={item}
           icon="🧠"
           label="Concepts Mastered"
           value={insights?.total_questions || 0}
-          color="#fff"
         />
         <MetricCard
           variants={item}
           icon="⏱️"
           label="Avg. Session"
           value="42m"
-          color="#fff"
         />
         <MetricCard
           variants={item}
           icon="📈"
           label="Retention Rate"
           value="88%"
-          color="#fff"
         />
         <MetricCard
-          icon="⏱️"
+          variants={item}
+          icon="⏳"
           label="Current Session"
           value={sessionDisplay}
-          color="#fff"
         />
       </motion.div>
-      <button
-        className="clear-all-btn"
-        onClick={() => {
-          if (
-            window.confirm(
-              "Are you sure you want to clear all chat history? This cannot be undone.",
-            )
-          ) {
-            clearAllHistory();
-          }
+
+      {/* Clear History Button Fix */}
+      {clearAllHistory && (
+        <button
+          className="clear-all-btn"
+          onClick={() => {
+            if (
+              window.confirm(
+                "Are you sure you want to clear all chat history? This cannot be undone.",
+              )
+            ) {
+              clearAllHistory();
+            }
+          }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Clear All History
+        </button>
+      )}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+          gap: "24px",
         }}
       >
-        <svg
-          viewBox="0 0 24 24"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-        </svg>
-        Clear All History
-      </button>
-      <div
-        style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}
-      >
-        {/* Activity Tracker */}
+        {/* Activity Tracker (Fixed Bars) */}
         <motion.div
           className="advanced-card"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{ padding: "32px" }}
+          style={{
+            padding: "32px",
+            border: "1px solid var(--border-light)",
+            borderRadius: "16px",
+          }}
         >
-          <h3 style={{ marginBottom: "24px" }}>Learning Velocity (7 Days)</h3>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "space-between",
-              height: "200px",
-              paddingTop: "20px",
-            }}
-          >
+          <h3 style={{ marginBottom: "24px", color: "var(--text-primary)" }}>
+            Learning Velocity (7 Days)
+          </h3>
+          <div className="velocity-container">
+            {/* Array of percentages determining height */}
             {[40, 70, 45, 90, 65, 80, 95].map((height, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: "12px",
-                  width: "12%",
-                }}
-              >
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${height}%` }}
-                  transition={{ duration: 1, delay: i * 0.1 }}
+              <div key={i} className="velocity-col">
+                <div className="velocity-bar-wrapper">
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${height}%` }}
+                    transition={{ duration: 1, delay: i * 0.1, type: "spring" }}
+                    style={{
+                      width: "100%",
+                      background: "var(--accent-color)", // Using the global accent variable
+                      borderRadius: "6px",
+                    }}
+                  />
+                </div>
+                <span
                   style={{
-                    width: "100%",
-                    background: "var(--accent)",
-                    borderRadius: "6px 6px 0 0",
+                    fontSize: "12px",
+                    color: "var(--text-secondary)",
+                    fontWeight: "600",
                   }}
-                />
-                <span style={{ fontSize: "12px", color: "var(--text3)" }}>
+                >
                   {["M", "T", "W", "T", "F", "S", "S"][i]}
                 </span>
               </div>
@@ -170,9 +230,15 @@ export default function InsightsPanel() {
           className="advanced-card"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{ padding: "32px" }}
+          style={{
+            padding: "32px",
+            border: "1px solid var(--border-light)",
+            borderRadius: "16px",
+          }}
         >
-          <h3 style={{ marginBottom: "20px" }}>Friction Points ⚠️</h3>
+          <h3 style={{ marginBottom: "20px", color: "var(--text-primary)" }}>
+            Friction Points ⚠️
+          </h3>
           <div
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
@@ -181,18 +247,43 @@ export default function InsightsPanel() {
                 <div
                   key={idx}
                   style={{
-                    padding: "12px",
-                    borderLeft: "2px solid #fff",
-                    background: "rgba(255,255,255,0.05)",
+                    padding: "16px",
+                    borderLeft: "3px solid var(--accent-color)",
+                    background: "var(--bg-input)",
+                    borderRadius: "0 8px 8px 0",
                   }}
                 >
-                  <p style={{ fontSize: "14px" }}>{area}</p>
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      color: "var(--text-primary)",
+                      margin: 0,
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {area}
+                  </p>
                 </div>
               ))
             ) : (
-              <p style={{ color: "var(--text3)", fontSize: "14px" }}>
-                No roadblocks detected today.
-              </p>
+              <div
+                style={{
+                  padding: "20px",
+                  textAlign: "center",
+                  border: "1px dashed var(--border-light)",
+                  borderRadius: "8px",
+                }}
+              >
+                <p
+                  style={{
+                    color: "var(--text-secondary)",
+                    fontSize: "14px",
+                    margin: 0,
+                  }}
+                >
+                  No roadblocks detected today. Great job!
+                </p>
+              </div>
             )}
           </div>
         </motion.div>
@@ -201,6 +292,7 @@ export default function InsightsPanel() {
   );
 }
 
+// Fixed Metric Card to inherit global theme colors instead of hardcoded white
 function MetricCard({ icon, label, value, variants }) {
   return (
     <motion.div
@@ -211,21 +303,33 @@ function MetricCard({ icon, label, value, variants }) {
         display: "flex",
         alignItems: "center",
         gap: "20px",
+        border: "1px solid var(--border-light)",
+        borderRadius: "16px",
       }}
     >
       <div style={{ fontSize: "32px" }}>{icon}</div>
       <div>
         <div
           style={{
-            fontSize: "13px",
-            color: "var(--text3)",
+            fontSize: "12px",
+            color: "var(--text-secondary)",
             textTransform: "uppercase",
             letterSpacing: "1px",
+            fontWeight: "600",
+            marginBottom: "4px",
           }}
         >
           {label}
         </div>
-        <div style={{ fontSize: "28px", fontWeight: "800" }}>{value}</div>
+        <div
+          style={{
+            fontSize: "28px",
+            fontWeight: "800",
+            color: "var(--text-primary)",
+          }}
+        >
+          {value}
+        </div>
       </div>
     </motion.div>
   );

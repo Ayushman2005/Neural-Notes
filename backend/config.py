@@ -1,5 +1,5 @@
 """
-config.py — Centralized configuration for StudyAI backend
+config.py — Centralized configuration for NeuralNotes backend
 All environment variables and constants live here.
 """
 

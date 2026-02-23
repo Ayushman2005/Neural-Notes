@@ -110,7 +110,7 @@ export const useStore = create(
         })),
     }),
     {
-      name: "studyai-storage",
+      name: "NeuralNotes-storage",
       // Only persist these specific fields
       partialize: (state) => ({
         theme: state.theme,

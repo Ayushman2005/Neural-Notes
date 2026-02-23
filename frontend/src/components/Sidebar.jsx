@@ -6,17 +6,15 @@ export default function Sidebar() {
     setActiveView,
     theme,
     toggleTheme,
-    chatHistory = {},
-    loadChat,
     setSession,
     session,
-    clearAllHistory, // Ensure this is available in your store
+    clearAllHistory,
   } = useStore();
 
   const navItems = [
     {
       id: "chat",
-      label: "Chat",
+      label: "Chat Engine",
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -34,7 +32,7 @@ export default function Sidebar() {
     },
     {
       id: "upload",
-      label: "Upload",
+      label: "Knowledge Base",
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -52,26 +50,28 @@ export default function Sidebar() {
         </svg>
       ),
     },
-    // {
-    //   id: "progress",
-    //   label: "Progress",
-    //   icon: (
-    //     <svg
-    //       viewBox="0 0 24 24"
-    //       width="20"
-    //       height="20"
-    //       fill="none"
-    //       stroke="currentColor"
-    //       strokeWidth="2"
-    //     >
-    //       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-    //       <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    //     </svg>
-    //   ),
-    // },
+    {
+      id: "progress",
+      label: "Learning Roadmap",
+      icon: (
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      ),
+    },
     {
       id: "insights",
-      label: "Data",
+      label: "Analytics",
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -91,7 +91,7 @@ export default function Sidebar() {
     },
     {
       id: "architecture",
-      label: "Engine",
+      label: "System Engine",
       icon: (
         <svg
           viewBox="0 0 24 24"
@@ -103,15 +103,9 @@ export default function Sidebar() {
           strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <line x1="4" y1="21" x2="4" y2="14"></line>
-          <line x1="4" y1="10" x2="4" y2="3"></line>
-          <line x1="12" y1="21" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12" y2="3"></line>
-          <line x1="20" y1="21" x2="20" y2="16"></line>
-          <line x1="20" y1="12" x2="20" y2="3"></line>
-          <line x1="1" y1="14" x2="7" y2="14"></line>
-          <line x1="9" y1="8" x2="15" y2="8"></line>
-          <line x1="17" y1="16" x2="23" y2="16"></line>
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
         </svg>
       ),
     },
@@ -134,55 +128,122 @@ export default function Sidebar() {
     : "U";
 
   return (
-    <aside className="thin-sidebar">
-      <div className="sidebar-top">
-        <div className="brand-orb"></div>
+    <aside
+      className="thin-sidebar"
+      style={{
+        width: "72px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "24px 0",
+        background: "var(--bg-sidebar)",
+        borderRight: "1px solid var(--border-light)",
+        height: "100vh",
+        zIndex: 100,
+      }}
+    >
+      {/* ── Scoped CSS for Perfect Hover States ── */}
+      <style>{`
+        .icon-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: transparent;
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-bottom: 8px;
+        }
+        .icon-btn:hover {
+          background: var(--bg-card-hover);
+          color: var(--text-primary);
+        }
+        .icon-btn.active {
+          background: var(--bg-input);
+          color: var(--accent-color);
+          border: 1px solid var(--border-light);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .danger-btn:hover {
+          color: #ef4444 !important;
+          background: rgba(239, 68, 68, 0.1) !important;
+        }
+        /* Removed .brand-orb style, added .sidebar-logo */
+        .sidebar-logo {
+          width: 40px;
+          height: auto;
+          margin-bottom: 24px;
+          /* Optional: add a subtle drop shadow for depth */
+          /* filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); */
+        }
+      `}</style>
 
-        <button
-          className="icon-btn"
-          onClick={() => setActiveView("chat")}
-          title="Home"
-          style={{ color: "var(--accent-color)" }}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="22"
-            height="22"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-            <polyline points="9 22 9 12 15 12 15 22"></polyline>
-          </svg>
-        </button>
+      <div
+        className="sidebar-top"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
+        {/* REPLACED ORB WITH LOGO IMAGE */}
+        {/* Ensure 'logo.png' is in your 'public' folder */}
+        <img src="/logo.png" alt="NeuralNotes Logo" className="sidebar-logo" />
 
-        <button
-          className="icon-btn"
-          onClick={() => {
-            setSession({ ...session, session_id: Date.now().toString() });
-            setActiveView("chat");
+        <div
+          className="nav-icons"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            width: "100%",
+            alignItems: "center",
           }}
-          title="New Chat"
         >
-          <svg
-            viewBox="0 0 24 24"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          {/* New Chat Button (Prominent) */}
+          <button
+            className="icon-btn"
+            onClick={() => {
+              setSession({ ...session, session_id: Date.now().toString() });
+              setActiveView("chat");
+            }}
+            title="New Chat Session"
+            style={{
+              marginBottom: "16px",
+              background: "var(--bg-input)",
+              border: "1px dashed var(--border-light)",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent-color)";
+              e.currentTarget.style.color = "var(--accent-color)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-light)";
+              e.currentTarget.style.color = "var(--text-secondary)";
+            }}
           >
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
 
-        <div className="nav-icons">
+          {/* Mapping Nav Items */}
           {navItems.map((item) => (
             <button
               key={item.id}
@@ -196,29 +257,43 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="sidebar-bottom">
-        {/* CLEAR HISTORY BUTTON */}
-        <button
-          className="icon-btn clear-history-btn"
-          onClick={handleClearHistory}
-          title="Clear All History"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div
+        className="sidebar-bottom"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+          gap: "8px",
+        }}
+      >
+        {clearAllHistory && (
+          <button
+            className="icon-btn danger-btn"
+            onClick={handleClearHistory}
+            title="Clear All History"
           >
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        )}
 
-        <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
+        <button
+          className="icon-btn"
+          onClick={toggleTheme}
+          title="Toggle Dark/Light Mode"
+        >
           {theme === "dark" ? (
             <svg
               viewBox="0 0 24 24"
@@ -257,9 +332,9 @@ export default function Sidebar() {
         </button>
 
         <button
-          className="icon-btn logout-btn"
+          className="icon-btn danger-btn"
           onClick={handleLogout}
-          title="Logout"
+          title="Sign Out"
         >
           <svg
             viewBox="0 0 24 24"
@@ -277,7 +352,25 @@ export default function Sidebar() {
           </svg>
         </button>
 
-        <div className="user-avatar-small">{userInitial}</div>
+        {/* Upgraded Premium Avatar */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, var(--accent-color), #6b21a8)",
+            color: "white",
+            width: "36px",
+            height: "36px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: "bold",
+            fontSize: "16px",
+            marginTop: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          }}
+        >
+          {userInitial}
+        </div>
       </div>
     </aside>
   );

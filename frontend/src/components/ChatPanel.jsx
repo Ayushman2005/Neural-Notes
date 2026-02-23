@@ -35,12 +35,12 @@ export default function ChatPanel() {
     mode,
     setMode,
     subject,
-    setActiveTopic, // Added from previous store update
-    setRoadmapData, // Added from previous store update
+    setActiveTopic,
+    setRoadmapData,
   } = useStore();
 
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoadingState] = useState("");
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
@@ -88,7 +88,7 @@ export default function ChatPanel() {
 
     return `
       <div style="font-family: sans-serif; color: #000; padding: 20px; background: #fff;">
-        <h2 style="color: #6b21a8; border-bottom: 1px solid #e5e5e5; padding-bottom: 10px;">StudyAI Q&A</h2>
+        <h2 style="color: #6b21a8; border-bottom: 1px solid #e5e5e5; padding-bottom: 10px;">NeuralNotes Q&A</h2>
         <h4 style="color: #333; margin-top: 20px;">Question:</h4>
         <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; margin-bottom: 20px;">${formatText(question)}</div>
         <h4 style="color: #6b21a8;">Answer:</h4>
@@ -101,7 +101,7 @@ export default function ChatPanel() {
     const htmlContent = getExportHTML(question, answer);
     const opt = {
       margin: 0.5,
-      filename: `StudyAI_QnA_${new Date().getTime()}.pdf`,
+      filename: `NeuralNotes_QnA_${new Date().getTime()}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
@@ -129,7 +129,7 @@ export default function ChatPanel() {
   const sendMessage = async (overrideText = null) => {
     const userText =
       typeof overrideText === "string" ? overrideText : input.trim();
-    if (!userText || !session || loading) return;
+    if (!userText || !session || loadingState) return;
 
     if (
       userText.toLowerCase().includes("learn") ||
@@ -158,7 +158,16 @@ export default function ChatPanel() {
     }
 
     addMessage({ role: "user", content: userText });
-    setLoading(true);
+
+    // Progressive Loading
+    setLoadingState("Searching syllabus...");
+    const loadingInterval = setInterval(() => {
+      setLoadingState((prev) => {
+        if (prev === "Searching syllabus...") return "Analyzing context...";
+        if (prev === "Analyzing context...") return "Synthesizing answer...";
+        return "Synthesizing answer...";
+      });
+    }, 2500);
 
     try {
       let finalQuestion = `Answer this: "${userText}". RULES: Format STRICTLY Pointwise. Use the SAME language as the question. No Images. Convert table data into spaced bullet points.`;
@@ -175,24 +184,27 @@ export default function ChatPanel() {
       };
 
       const data = await askQuestion(payload);
-
       const aiResponseText = String(
         data.answer || data.message || "Data not available.",
       );
 
       addMessage({
         role: "ai",
-        content: data.answer || data.message || "Data not available.",
+        content: aiResponseText,
         suggestions: data.follow_up_suggestions,
       });
+
       if (autoSpeak) {
-        speakText(aiResponseText);
-        setAutoSpeak(false); // Resets it so it doesn't read text-based chats out loud
+        if (!aiResponseText.trim().startsWith("[")) {
+          speakText(aiResponseText);
+        }
+        setAutoSpeak(false);
       }
     } catch (err) {
       toast.error("Failed to fetch answer.");
     } finally {
-      setLoading(false);
+      clearInterval(loadingInterval);
+      setLoadingState("");
       setInput("");
     }
   };
@@ -203,7 +215,7 @@ export default function ChatPanel() {
         <button
           className={`input-action-btn ${isListening ? "active-mic" : ""}`}
           onClick={() => startListening(handleVoiceInput)}
-          disabled={loading || !session}
+          disabled={!!loadingState || !session}
         >
           <svg
             viewBox="0 0 24 24"
@@ -246,10 +258,9 @@ export default function ChatPanel() {
         <button
           className="send-action-btn"
           onClick={() => sendMessage()}
-          /* Logic Fix: Button activates immediately as you type */
-          disabled={loading || !input.trim()}
+          disabled={!!loadingState || !input.trim()}
           style={{
-            opacity: loading || !input.trim() ? 0.3 : 1,
+            opacity: !!loadingState || !input.trim() ? 0.3 : 1,
             background: input.trim()
               ? "var(--text-primary)"
               : "var(--border-light)",
@@ -298,9 +309,33 @@ export default function ChatPanel() {
 
   return (
     <div className="pure-chat-layout">
+      {/* ── Scoped CSS to completely disable the pink/purple outline ── */}
+      <style>{`
+        .text-input:focus, 
+        .clean-select:focus, 
+        .input-action-btn:focus, 
+        .send-action-btn:focus, 
+        .clean-mode-btn:focus {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+        
+        /* Targets the wrapper box to ensure no pink borders appear on click */
+        .input-core:focus-within {
+          outline: none !important;
+          box-shadow: none !important;
+          border-color: var(--border-light) !important;
+        }
+        
+        /* Failsafe to strip webkit default focus rings */
+        textarea, input, select, button {
+          -webkit-tap-highlight-color: transparent;
+        }
+      `}</style>
+
       <div className="pure-top-bar">
         <div className="top-model-selector">
-          StudyAI Engine
+          NeuralNotes Engine
           <svg
             viewBox="0 0 24 24"
             width="16"
@@ -317,7 +352,15 @@ export default function ChatPanel() {
       {messages.length === 0 ? (
         <div className="hero-center-area">
           <div className="hero-greeting">
-            <div className="hero-orb"></div>
+            <img
+              src="/logo.png"
+              alt="NeuralNotes Logo"
+              style={{
+                width: "64px",
+                height: "auto",
+                marginBottom: "20px",
+              }}
+            />
             <h1>
               {greeting}, {userName}
             </h1>
@@ -364,27 +407,42 @@ export default function ChatPanel() {
                   {msg.role === "ai" ? (
                     <div className="ai-orb-small"></div>
                   ) : (
-                    userName.charAt(0).toUpperCase()
+                    <div
+                      style={{
+                        background:
+                          "linear-gradient(135deg, var(--accent-color), #6b21a8)",
+                        color: "white",
+                        width: "32px",
+                        height: "32px",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: "14px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {userName.charAt(0).toUpperCase()}
+                    </div>
                   )}
                 </div>
+
                 <div className="pure-message-content">
                   {(() => {
                     if (msg.role === "ai") {
                       try {
-                        // 1. Find the exact start and end of the JSON array, ignoring any intro text
                         const contentStr = msg.content || "";
                         const jsonStart = contentStr.indexOf("[");
                         const jsonEnd = contentStr.lastIndexOf("]");
 
                         if (jsonStart !== -1 && jsonEnd !== -1) {
-                          // 2. Extract ONLY the JSON part
                           const cleanJson = contentStr.substring(
                             jsonStart,
                             jsonEnd + 1,
                           );
                           const parsedData = JSON.parse(cleanJson);
 
-                          // 3. If it looks like a quiz array, render the Interactive component!
                           if (
                             Array.isArray(parsedData) &&
                             parsedData[0]?.question &&
@@ -394,7 +452,7 @@ export default function ChatPanel() {
                           }
                         }
                       } catch (e) {
-                        // If it fails to parse, it's just normal text. Move on and render as Markdown.
+                        // Fails silently; renders as Markdown
                       }
                     }
 
@@ -404,6 +462,7 @@ export default function ChatPanel() {
                           remarkPlugins={[remarkMath]}
                           rehypePlugins={[rehypeKatex]}
                           components={{
+                            img: () => null,
                             code({
                               node,
                               inline,
@@ -435,7 +494,47 @@ export default function ChatPanel() {
                         </ReactMarkdown>
 
                         {msg.role === "ai" && (
-                          <div className="pure-actions-row">
+                          <div
+                            className="pure-actions-row"
+                            style={{
+                              display: "flex",
+                              gap: "12px",
+                              marginTop: "16px",
+                            }}
+                          >
+                            <button
+                              className="action-link"
+                              onClick={() => {
+                                navigator.clipboard.writeText(msg.content);
+                                toast.success("Copied to clipboard!");
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              <svg
+                                viewBox="0 0 24 24"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <rect
+                                  x="9"
+                                  y="9"
+                                  width="13"
+                                  height="13"
+                                  rx="2"
+                                  ry="2"
+                                ></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                              </svg>
+                              Copy
+                            </button>
+
                             <button
                               className="action-link"
                               onClick={() =>
@@ -446,9 +545,29 @@ export default function ChatPanel() {
                                   msg.content,
                                 )
                               }
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
                             >
+                              <svg
+                                viewBox="0 0 24 24"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                              </svg>
                               Export PDF
                             </button>
+
                             <button
                               className="action-link"
                               onClick={() =>
@@ -459,7 +578,26 @@ export default function ChatPanel() {
                                   msg.content,
                                 )
                               }
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
                             >
+                              <svg
+                                viewBox="0 0 24 24"
+                                width="14"
+                                height="14"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                              </svg>
                               Export DOC
                             </button>
                           </div>
@@ -472,7 +610,7 @@ export default function ChatPanel() {
                                 key={i}
                                 className="pure-pill"
                                 onClick={() => sendMessage(sug)}
-                                disabled={loading}
+                                disabled={!!loadingState}
                               >
                                 {sug}
                               </button>
@@ -485,13 +623,13 @@ export default function ChatPanel() {
                 </div>
               </div>
             ))}
-            {loading && (
+            {loadingState && (
               <div className="pure-message-row ai">
                 <div className="pure-avatar">
                   <div className="ai-orb-small pulse"></div>
                 </div>
                 <div className="pure-message-content">
-                  <div className="typing-indicator">Processing...</div>
+                  <div className="typing-indicator">{loadingState}</div>
                 </div>
               </div>
             )}

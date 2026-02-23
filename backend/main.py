@@ -10,7 +10,7 @@ from memory_manager import ConversationMemory
 from insight_tracker import InsightTracker
 from ai_client import AIClient
 
-app = FastAPI(title="StudyAI Backend")
+app = FastAPI(title="NeuralNotes Backend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -79,7 +79,7 @@ def _build_prompt(
         else "Use Web Search."
     )
 
-    return f"""You are StudyAI. Use Syllabus and Google Search.
+    return f"""You are NeuralNotes. Use Syllabus and Google Search.
 {struggle_protocol}
 LEVEL: {level_map.get(level)} | MODE: {mode_map.get(mode, 'Provide a standard detailed response.')}
 SYLLABUS: {context}
