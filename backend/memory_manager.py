@@ -5,7 +5,7 @@ Handles multi-turn dialogue history using SQLite for lightweight persistence.
 
 import sqlite3
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Optional
 import os
 
@@ -50,7 +50,7 @@ class ConversationMemory:
     def init_session(self, session_id: str, student_name: str, subject: Optional[str]):
         self.conn.execute(
             "INSERT OR REPLACE INTO sessions VALUES (?, ?, ?, ?)",
-            (session_id, student_name, subject, datetime.utcnow().isoformat())
+            (session_id, student_name, subject, datetime.now(timezone.utc).isoformat())
         )
         self.conn.commit()
 
@@ -66,7 +66,7 @@ class ConversationMemory:
         topic = self._extract_topic(question)
         self.conn.execute(
             "INSERT INTO turns (session_id, question, answer, turn_type, topic, timestamp) VALUES (?,?,?,?,?,?)",
-            (session_id, question, answer, turn_type, topic, datetime.utcnow().isoformat())
+            (session_id, question, answer, turn_type, topic, datetime.now(timezone.utc).isoformat())
         )
         self.conn.commit()
 

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
+/* eslint-disable react/prop-types */
 export default function InteractiveQuiz({ quizData }) {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);

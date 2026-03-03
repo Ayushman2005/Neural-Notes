@@ -11,6 +11,7 @@ export default function UploadPanel() {
 
   useEffect(() => {
     fetchDocs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchDocs = async () => {

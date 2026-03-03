@@ -138,9 +138,10 @@ class RAGEngine:
                 results["metadatas"][0],
                 results["distances"][0]
             ):
-                # Convert cosine distance to similarity score
-                score = 1.0 - dist
-                if score > 0.25:  # Relevance threshold
+                # Convert ChromaDB default L2 squared distance to cosine similarity
+                # For normalized embeddings: L2^2 = 2 - 2*cos(theta) => cos = 1 - L2^2 / 2
+                score = 1.0 - (dist / 2.0)
+                if score > 0.10:  # Relevance threshold
                     chunks.append({
                         "text": doc,
                         "filename": meta.get("filename", "Unknown"),
@@ -185,6 +186,18 @@ class RAGEngine:
         for sentence in sentences:
             words = sentence.split()
             word_count = len(words)
+
+            # If a single sentence exceeds CHUNK_SIZE, handle it gracefully by breaking it down
+            if word_count > self.CHUNK_SIZE:
+                if current_chunk_words:
+                    chunks.append(" ".join(current_chunk_words))
+                    current_chunk_words = []
+                    current_len = 0
+                
+                for i in range(0, word_count, self.CHUNK_SIZE - self.CHUNK_OVERLAP):
+                    chunk = words[i:i + self.CHUNK_SIZE]
+                    chunks.append(" ".join(chunk))
+                continue
 
             if current_len + word_count > self.CHUNK_SIZE and current_chunk_words:
                 chunks.append(" ".join(current_chunk_words))

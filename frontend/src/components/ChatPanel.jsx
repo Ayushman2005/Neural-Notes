@@ -34,7 +34,6 @@ export default function ChatPanel() {
     setLevel,
     mode,
     setMode,
-    subject,
     setActiveTopic,
     setRoadmapData,
   } = useStore();
@@ -364,7 +363,7 @@ export default function ChatPanel() {
             <h1>
               {greeting}, {userName}
             </h1>
-            <h2>What's on your mind?</h2>
+            <h2>What&apos;s on your mind?</h2>
           </div>
 
           <div className="hero-input-container">{renderInputBox()}</div>
@@ -464,7 +463,6 @@ export default function ChatPanel() {
                           components={{
                             img: () => null,
                             code({
-                              node,
                               inline,
                               className,
                               children,

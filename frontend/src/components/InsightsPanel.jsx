@@ -3,7 +3,7 @@ import { useStore } from "../store";
 import { motion } from "framer-motion";
 
 export default function InsightsPanel() {
-  const { insights, getElapsedSessionTime, setInsights, clearAllHistory } =
+  const { insights, getElapsedSessionTime, clearAllHistory } =
     useStore();
   const [sessionDisplay, setSessionDisplay] = useState("0m");
 
@@ -293,6 +293,7 @@ export default function InsightsPanel() {
 }
 
 // Fixed Metric Card to inherit global theme colors instead of hardcoded white
+/* eslint-disable react/prop-types */
 function MetricCard({ icon, label, value, variants }) {
   return (
     <motion.div

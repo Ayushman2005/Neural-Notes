@@ -5,7 +5,7 @@ Uses SQLite for persistence.
 """
 
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict
 from collections import Counter
 import json
@@ -52,21 +52,21 @@ class InsightTracker:
         keywords = self._extract_keywords(question)
         self.conn.execute(
             "INSERT INTO questions (session_id, question, subject, keywords, timestamp) VALUES (?,?,?,?,?)",
-            (session_id, question, subject or "General", json.dumps(keywords), datetime.utcnow().isoformat())
+            (session_id, question, subject or "General", json.dumps(keywords), datetime.now(timezone.utc).isoformat())
         )
         self.conn.commit()
 
     def report_confusion(self, session_id: str, topic: str, level: int):
         self.conn.execute(
             "INSERT INTO confusion_reports (session_id, topic, confusion_level, timestamp) VALUES (?,?,?,?)",
-            (session_id, topic, level, datetime.utcnow().isoformat())
+            (session_id, topic, level, datetime.now(timezone.utc).isoformat())
         )
         self.conn.commit()
 
     def add_document(self, doc_id: str, filename: str, subject: str):
         self.conn.execute(
             "INSERT OR REPLACE INTO documents VALUES (?,?,?,?)",
-            (doc_id, filename, subject, datetime.utcnow().isoformat())
+            (doc_id, filename, subject, datetime.now(timezone.utc).isoformat())
         )
         self.conn.commit()
 

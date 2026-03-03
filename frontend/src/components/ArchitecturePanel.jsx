@@ -1,6 +1,5 @@
-import React from "react";
-
 // Clean, minimalist tech badge component
+/* eslint-disable react/prop-types */
 const TechBadge = ({ name }) => <span className="tech-badge">{name}</span>;
 
 export default function ArchitecturePanel() {

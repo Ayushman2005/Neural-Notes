@@ -1,4 +1,3 @@
-import React from "react";
 import { useStore } from "../store";
 
 export default function ProgressPanel() {
@@ -70,7 +69,7 @@ export default function ProgressPanel() {
               }}
             >
               <p style={{ color: "var(--text-secondary)" }}>
-                Start a chat about a specific topic (e.g., "I want to learn ML")
+                Start a chat about a specific topic (e.g., &quot;I want to learn ML&quot;)
                 to generate your roadmap.
               </p>
             </div>
