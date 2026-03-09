@@ -244,7 +244,7 @@ export default function UploadPanel() {
                 marginTop: "8px",
               }}
             >
-              {documents.length} File{documents.length !== 1 ? "s" : ""}{" "}
+              {(documents || []).length} File{(documents || []).length !== 1 ? "s" : ""}{" "}
               currently indexed in local database.
             </p>
           </div>
@@ -253,7 +253,7 @@ export default function UploadPanel() {
           </button>
         </div>
 
-        {documents.length === 0 ? (
+        {(documents || []).length === 0 ? (
           <div
             className="advanced-card"
             style={{
@@ -280,7 +280,7 @@ export default function UploadPanel() {
           <div
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
-            {documents.map((doc) => (
+            {(documents || []).map((doc) => (
               <div
                 key={doc.doc_id}
                 className="advanced-card"

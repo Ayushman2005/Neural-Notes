@@ -42,6 +42,25 @@ class RAGEngine:
 
         # In-memory doc registry
         self._doc_registry: Dict[str, Dict] = {}
+        
+        # Restore doc registry from ChromaDB to persist state across restarts
+        try:
+            results = self.collection.get(include=["metadatas"])
+            if results and results.get("metadatas"):
+                for meta in results["metadatas"]:
+                    if not meta:
+                        continue
+                    doc_id = meta.get("doc_id")
+                    if doc_id and doc_id not in self._doc_registry:
+                        self._doc_registry[doc_id] = {
+                            "doc_id": doc_id,
+                            "filename": meta.get("filename", "unknown"),
+                            "subject": meta.get("subject", "General"),
+                            "chunk_count": meta.get("chunk_total", 0),
+                            "uploaded_at": meta.get("uploaded_at", "")
+                        }
+        except Exception as e:
+            print(f"[RAG] Failed to restore doc registry: {e}")
 
     # ─── Document Management ─────────────────────────────────────────────────
 

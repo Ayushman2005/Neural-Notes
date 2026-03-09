@@ -151,13 +151,7 @@ export default function InsightsPanel() {
         <button
           className="clear-all-btn"
           onClick={() => {
-            if (
-              window.confirm(
-                "Are you sure you want to clear all chat history? This cannot be undone.",
-              )
-            ) {
-              clearAllHistory();
-            }
+            clearAllHistory();
           }}
         >
           <svg
@@ -261,7 +255,7 @@ export default function InsightsPanel() {
                       lineHeight: "1.5",
                     }}
                   >
-                    {area}
+                    {area.topic || area}
                   </p>
                 </div>
               ))
