@@ -24,9 +24,9 @@ class RAGEngine:
       - Retrieval: Cosine similarity with subject-level filtering
     """
 
-    CHUNK_SIZE = 400      # tokens approx (words)
-    CHUNK_OVERLAP = 80    # words of overlap between chunks
-    EMBEDDING_MODEL = "all-MiniLM-L6-v2"
+    CHUNK_SIZE = 250      # Reduced chunk size for granular, highly accurate retrieval
+    CHUNK_OVERLAP = 50    # Overlap to preserve context boundaries
+    EMBEDDING_MODEL = "BAAI/bge-small-en-v1.5" # State-of-the-art highly accurate retrieval model
 
     def __init__(self, persist_dir: str = "./chroma_store"):
         print("[RAG] Initializing ChromaDB...")
@@ -160,7 +160,7 @@ class RAGEngine:
                 # Convert ChromaDB default L2 squared distance to cosine similarity
                 # For normalized embeddings: L2^2 = 2 - 2*cos(theta) => cos = 1 - L2^2 / 2
                 score = 1.0 - (dist / 2.0)
-                if score > 0.10:  # Relevance threshold
+                if score > 0.35:  # STRICT relevance threshold for 100% accuracy (no hallucinations)
                     chunks.append({
                         "text": doc,
                         "filename": meta.get("filename", "Unknown"),

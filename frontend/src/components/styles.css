@@ -9,38 +9,39 @@
 }
 
 :root {
-  --bg-main: #ffffff;
-  --bg-sidebar: #f9f9f9;
-  --bg-input: #ffffff;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f3f4f6;
-  --border-light: #e5e5e5;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --accent-color: #9333ea;
-  --accent-hover: #7e22ce;
-  --orb-grad: radial-gradient(circle at 30% 30%, #d8b4fe, #9333ea);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-input: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  --bg-main: #f8fafc;
+  --bg-sidebar: rgba(255, 255, 255, 0.7);
+  --bg-input: rgba(255, 255, 255, 0.9);
+  --bg-card: rgba(255, 255, 255, 0.6);
+  --bg-card-hover: rgba(255, 255, 255, 0.9);
+  --border-light: rgba(0, 0, 0, 0.05);
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent-color: #6366f1;
+  --accent-hover: #4f46e5;
+  --orb-grad: linear-gradient(135deg, #a5b4fc, #6366f1);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-input: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  --backdrop-blur: blur(20px);
 }
 
 [data-theme="dark"] {
-  --bg-main: #212121;
-  --bg-sidebar: #171717;
-  --bg-input: #2f2f2f;
-  --bg-card: #2f2f2f;
-  --bg-card-hover: #3a3a3a;
-  --border-light: #424242;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
-  --accent-color: #c084fc;
-  --accent-hover: #d8b4fe;
-  --orb-grad: radial-gradient(circle at 30% 30%, #e9d5ff, #c084fc);
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-input: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --bg-main: #0f111a;
+  --bg-sidebar: rgba(21, 23, 32, 0.5);
+  --bg-input: rgba(30, 33, 46, 0.6);
+  --bg-card: rgba(30, 33, 46, 0.4);
+  --bg-card-hover: rgba(46, 50, 70, 0.6);
+  --border-light: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-color: #818cf8;
+  --accent-hover: #a5b4fc;
+  --orb-grad: linear-gradient(135deg, #c7d2fe, #818cf8);
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-input: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  --backdrop-blur: blur(20px);
 }
 
 html,
@@ -71,19 +72,22 @@ body::before {
   display: flex;
   flex-direction: column;
   position: relative;
-  background: var(--bg-main);
+  background: transparent;
 }
 
 .thin-sidebar {
-  width: 68px;
+  width: 72px;
   background: var(--bg-sidebar);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border-right: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
+  padding: 24px 0;
   z-index: 10;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
 .brand-orb {
@@ -224,14 +228,22 @@ body::before {
 
 .input-box-wrapper {
   background: var(--bg-input);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: var(--shadow-input);
   width: 100%;
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.input-box-wrapper:focus-within {
+  box-shadow: 0 0 0 1px var(--accent-color), var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .input-core {
@@ -361,21 +373,26 @@ body::before {
 
 .suggestion-card {
   background: var(--bg-card);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 20px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100px;
+  min-height: 110px;
+  box-shadow: var(--shadow-sm);
 }
 
 .suggestion-card:hover {
   background: var(--bg-card-hover);
-  border-color: var(--text-secondary);
+  border-color: var(--accent-color);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-md);
 }
 
 .card-text {
@@ -496,6 +513,8 @@ body::before {
 
 .pure-pill {
   background: var(--bg-card);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
   border: 1px solid var(--border-light);
   color: var(--text-primary);
   padding: 8px 16px;
@@ -507,6 +526,8 @@ body::before {
 
 .pure-pill:hover {
   background: var(--bg-card-hover);
+  border-color: var(--accent-color);
+  transform: translateY(-1px);
 }
 
 .bottom-input-container {
