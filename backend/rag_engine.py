@@ -25,7 +25,7 @@ class RAGEngine:
 
     CHUNK_SIZE = 250      # Reduced chunk size for granular, highly accurate retrieval
     CHUNK_OVERLAP = 50    # Overlap to preserve context boundaries
-    EMBEDDING_MODEL = "models/embedding-001"
+    EMBEDDING_MODEL = "models/gemini-embedding-001"
 
     def __init__(self, persist_dir: str = "./chroma_store"):
         print("[RAG] Initializing ChromaDB...")
@@ -33,7 +33,7 @@ class RAGEngine:
             path=persist_dir,
             settings=Settings(anonymized_telemetry=False)
         )
-        self.collection = self.client.get_or_create_collection(name="syllabus_docs")
+        self.collection = self.client.get_or_create_collection(name="syllabus_docs_v3")
 
         print(f"[RAG] Using Gemini Embedding model: {self.EMBEDDING_MODEL}")
         if settings.gemini_api_key:
@@ -138,32 +138,28 @@ class RAGEngine:
         if self.collection.count() == 0:
             return {"chunks": [], "query": query}
 
-        # Use Gemini API for query embedding
-        res = genai.embed_content(
-            model=self.EMBEDDING_MODEL,
-            content=query,
-            task_type="retrieval_query"
-        )
-        query_embedding = res['embedding']
-
-        where_filter = {}
-        if subject_filter and subject_filter.lower() != "general":
-            where_filter = {"subject": subject_filter}
-
         try:
+            # Use Gemini API for query embedding
+            res = genai.embed_content(
+                model=self.EMBEDDING_MODEL,
+                content=query,
+                task_type="retrieval_query"
+            )
+            query_embedding = res['embedding']
+
+            where_filter = {}
+            if subject_filter and subject_filter.lower() != "general":
+                where_filter = {"subject": subject_filter}
+
             results = self.collection.query(
                 query_embeddings=[query_embedding],
                 n_results=min(top_k, self.collection.count()),
                 where=where_filter if where_filter else None,
                 include=["documents", "metadatas", "distances"]
             )
-        except Exception:
-            # Fallback without filter
-            results = self.collection.query(
-                query_embeddings=[query_embedding],
-                n_results=min(top_k, self.collection.count()),
-                include=["documents", "metadatas", "distances"]
-            )
+        except Exception as e:
+            print(f"[RAG] Retrieval failed: {e}")
+            return {"chunks": [], "query": query, "error": str(e)}
 
         chunks = []
         if results["documents"] and results["documents"][0]:

@@ -20,12 +20,12 @@ class Config:
     )
 
     # ── AI Model ──────────────────────────────────────────────────────────────
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-flash-lite-latest"
     max_tokens: int = 1500
 
     # ── RAG ───────────────────────────────────────────────────────────────────
     chroma_persist_dir: str = os.environ.get("CHROMA_STORE_PATH", "./chroma_store")
-    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_model: str = "models/gemini-embedding-001"
     chunk_size: int = 400          # words
     chunk_overlap: int = 80        # words
     retrieval_top_k: int = 5
