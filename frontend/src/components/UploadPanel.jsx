@@ -74,10 +74,7 @@ export default function UploadPanel() {
     });
 
   return (
-    <div
-      className="upload-panel"
-      style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}
-    >
+    <div className="upload-panel">
       {/* ── Zen Style Scope for Upload Panel ── */}
       <style>{`
         .dropzone {
@@ -219,11 +216,14 @@ export default function UploadPanel() {
 
       <div style={{ marginTop: "64px" }}>
         <div
+          className="registry-header-row"
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "flex-end",
             marginBottom: "24px",
+            flexWrap: "wrap",
+            gap: "16px"
           }}
         >
           <div>

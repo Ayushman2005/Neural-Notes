@@ -128,21 +128,7 @@ export default function Sidebar() {
     : "U";
 
   return (
-    <aside
-      className="thin-sidebar"
-      style={{
-        width: "72px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "24px 0",
-        background: "var(--bg-sidebar)",
-        borderRight: "1px solid var(--border-light)",
-        height: "100vh",
-        zIndex: 100,
-      }}
-    >
+    <aside className="thin-sidebar">
       {/* ── Scoped CSS for Perfect Hover States ── */}
       <style>{`
         .icon-btn {
@@ -183,29 +169,12 @@ export default function Sidebar() {
         }
       `}</style>
 
-      <div
-        className="sidebar-top"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          width: "100%",
-        }}
-      >
+      <div className="sidebar-top">
         {/* REPLACED ORB WITH LOGO IMAGE */}
         {/* Ensure 'logo.png' is in your 'public' folder */}
         <img src="/logo.png" alt="NeuralNotes Logo" className="sidebar-logo" />
 
-        <div
-          className="nav-icons"
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-            width: "100%",
-            alignItems: "center",
-          }}
-        >
+        <div className="nav-icons">
           {/* New Chat Button (Prominent) */}
           <button
             className="icon-btn"
@@ -257,16 +226,7 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div
-        className="sidebar-bottom"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          width: "100%",
-          gap: "8px",
-        }}
-      >
+      <div className="sidebar-bottom">
         {clearAllHistory && (
           <button
             className="icon-btn danger-btn"
@@ -353,22 +313,7 @@ export default function Sidebar() {
         </button>
 
         {/* Upgraded Premium Avatar */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, var(--accent-color), #6b21a8)",
-            color: "white",
-            width: "36px",
-            height: "36px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: "bold",
-            fontSize: "16px",
-            marginTop: "8px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-          }}
-        >
+        <div className="user-avatar-premium">
           {userInitial}
         </div>
       </div>

@@ -35,10 +35,7 @@ export default function InsightsPanel() {
   };
 
   return (
-    <div
-      className="insights-panel"
-      style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}
-    >
+    <div className="insights-panel">
       {/* ── Fixed CSS for Velocity Bars ── */}
       <style>{`
         .velocity-container {
@@ -85,18 +82,11 @@ export default function InsightsPanel() {
         }
       `}</style>
 
-      <header style={{ marginBottom: "48px" }}>
-        <h1
-          style={{
-            fontSize: "42px",
-            fontWeight: "800",
-            marginBottom: "8px",
-            color: "var(--text-primary)",
-          }}
-        >
+      <header className="insights-header">
+        <h1 className="insights-title">
           Daily Monitoring
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "16px" }}>
+        <p className="insights-subtitle">
           Tracking your syllabus mastery and interaction velocity.
         </p>
       </header>
@@ -107,12 +97,6 @@ export default function InsightsPanel() {
         variants={container}
         initial="hidden"
         animate="show"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "24px",
-          marginBottom: "32px",
-        }}
       >
         <MetricCard
           variants={item}
@@ -168,25 +152,14 @@ export default function InsightsPanel() {
         </button>
       )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-          gap: "24px",
-        }}
-      >
+      <div className="insights-content-grid">
         {/* Activity Tracker (Fixed Bars) */}
         <motion.div
-          className="advanced-card"
+          className="advanced-card velocity-card"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{
-            padding: "32px",
-            border: "1px solid var(--border-light)",
-            borderRadius: "16px",
-          }}
         >
-          <h3 style={{ marginBottom: "24px", color: "var(--text-primary)" }}>
+          <h3 className="card-title-lg">
             Learning Velocity (7 Days)
           </h3>
           <div className="velocity-container">
@@ -205,13 +178,7 @@ export default function InsightsPanel() {
                     }}
                   />
                 </div>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--text-secondary)",
-                    fontWeight: "600",
-                  }}
-                >
+                <span className="velocity-label">
                   {["M", "T", "W", "T", "F", "S", "S"][i]}
                 </span>
               </div>
@@ -221,60 +188,28 @@ export default function InsightsPanel() {
 
         {/* Friction Points */}
         <motion.div
-          className="advanced-card"
+          className="advanced-card friction-card"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          style={{
-            padding: "32px",
-            border: "1px solid var(--border-light)",
-            borderRadius: "16px",
-          }}
         >
-          <h3 style={{ marginBottom: "20px", color: "var(--text-primary)" }}>
+          <h3 className="card-title-lg">
             Friction Points ⚠️
           </h3>
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
+          <div className="friction-list">
             {insights?.confusion_areas?.length > 0 ? (
               insights.confusion_areas.map((area, idx) => (
                 <div
                   key={idx}
-                  style={{
-                    padding: "16px",
-                    borderLeft: "3px solid var(--accent-color)",
-                    background: "var(--bg-input)",
-                    borderRadius: "0 8px 8px 0",
-                  }}
+                  className="friction-item"
                 >
-                  <p
-                    style={{
-                      fontSize: "14px",
-                      color: "var(--text-primary)",
-                      margin: 0,
-                      lineHeight: "1.5",
-                    }}
-                  >
+                  <p>
                     {area.topic || area}
                   </p>
                 </div>
               ))
             ) : (
-              <div
-                style={{
-                  padding: "20px",
-                  textAlign: "center",
-                  border: "1px dashed var(--border-light)",
-                  borderRadius: "8px",
-                }}
-              >
-                <p
-                  style={{
-                    color: "var(--text-secondary)",
-                    fontSize: "14px",
-                    margin: 0,
-                  }}
-                >
+              <div className="friction-empty">
+                <p>
                   No roadblocks detected today. Great job!
                 </p>
               </div>
@@ -292,37 +227,14 @@ function MetricCard({ icon, label, value, variants }) {
   return (
     <motion.div
       variants={variants}
-      className="advanced-card"
-      style={{
-        padding: "24px",
-        display: "flex",
-        alignItems: "center",
-        gap: "20px",
-        border: "1px solid var(--border-light)",
-        borderRadius: "16px",
-      }}
+      className="advanced-card metric-card-inner"
     >
-      <div style={{ fontSize: "32px" }}>{icon}</div>
+      <div className="metric-icon">{icon}</div>
       <div>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "var(--text-secondary)",
-            textTransform: "uppercase",
-            letterSpacing: "1px",
-            fontWeight: "600",
-            marginBottom: "4px",
-          }}
-        >
+        <div className="metric-label">
           {label}
         </div>
-        <div
-          style={{
-            fontSize: "28px",
-            fontWeight: "800",
-            color: "var(--text-primary)",
-          }}
-        >
+        <div className="metric-value">
           {value}
         </div>
       </div>

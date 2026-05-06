@@ -234,6 +234,14 @@ export default function SetupModal() {
         .spinner-icon {
           animation: spin 1s linear infinite;
         }
+        @media (max-width: 768px) {
+          .setup-card {
+            padding: 32px 24px;
+          }
+          .setup-feature-item {
+            font-size: 14px;
+          }
+        }
       `}</style>
 
       <motion.div

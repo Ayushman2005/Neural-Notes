@@ -4,10 +4,7 @@ const TechBadge = ({ name }) => <span className="tech-badge">{name}</span>;
 
 export default function ArchitecturePanel() {
   return (
-    <div
-      className="architecture-panel"
-      style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}
-    >
+    <div className="architecture-panel">
       {/* ── Minimalist CSS for specific elements in this panel ── */}
       <style>{`
         .tech-badge {
@@ -50,10 +47,7 @@ export default function ArchitecturePanel() {
         }
       `}</style>
 
-      <div
-        className="panel-header"
-        style={{ textAlign: "center", marginBottom: "48px" }}
-      >
+      <div className="panel-header" style={{ textAlign: "center", marginBottom: "48px" }}>
         <h2
           style={{ fontSize: "36px", fontWeight: "800", marginBottom: "12px" }}
         >
