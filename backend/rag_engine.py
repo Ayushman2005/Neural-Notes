@@ -67,15 +67,15 @@ class RAGEngine:
 
     # ─── Document Management ─────────────────────────────────────────────────
 
-    def add_document(self, text: str, metadata: Dict[str, Any]) -> str:
+    async def add_document(self, text: str, metadata: Dict[str, Any]) -> str:
         """Chunk, embed, and store a document. Returns doc_id."""
         doc_id = str(uuid.uuid4())[:8]
         chunks = self._chunk_text(text)
 
         print(f"[RAG] Indexing doc {doc_id}: {len(chunks)} chunks from '{metadata.get('filename', '?')}'")
 
-        # Use Gemini API for embeddings
-        res = genai.embed_content(
+        # Use Gemini API for embeddings (async)
+        res = await genai.embed_content_async(
             model=self.EMBEDDING_MODEL,
             content=chunks,
             task_type="retrieval_document"
@@ -125,7 +125,7 @@ class RAGEngine:
 
     # ─── Retrieval ────────────────────────────────────────────────────────────
 
-    def retrieve(
+    async def retrieve(
         self,
         query: str,
         subject_filter: Optional[str] = None,
@@ -139,8 +139,8 @@ class RAGEngine:
             return {"chunks": [], "query": query}
 
         try:
-            # Use Gemini API for query embedding
-            res = genai.embed_content(
+            # Use Gemini API for query embedding (async)
+            res = await genai.embed_content_async(
                 model=self.EMBEDDING_MODEL,
                 content=query,
                 task_type="retrieval_query"

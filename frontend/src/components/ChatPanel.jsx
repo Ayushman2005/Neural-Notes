@@ -30,6 +30,7 @@ export default function ChatPanel() {
     session,
     messages,
     addMessage,
+    updateLastMessage,
     level,
     setLevel,
     mode,
@@ -157,16 +158,8 @@ export default function ChatPanel() {
     }
 
     addMessage({ role: "user", content: userText });
-
-    // Progressive Loading
-    setLoadingState("Searching syllabus...");
-    const loadingInterval = setInterval(() => {
-      setLoadingState((prev) => {
-        if (prev === "Searching syllabus...") return "Analyzing context...";
-        if (prev === "Analyzing context...") return "Synthesizing answer...";
-        return "Synthesizing answer...";
-      });
-    }, 2500);
+    setInput(""); // Clear immediately for better UX
+    setLoadingState("Thinking...");
 
     try {
       let finalQuestion = `Answer this: "${userText}". RULES: Format STRICTLY Pointwise. Use the SAME language as the question. No Images. Convert table data into spaced bullet points.`;
@@ -182,29 +175,49 @@ export default function ChatPanel() {
         explanation_mode: "quick",
       };
 
-      const data = await askQuestion(payload);
-      const aiResponseText = String(
-        data.answer || data.message || "Data not available.",
+      // Add a placeholder AI message
+      addMessage({ role: "ai", content: "", suggestions: [] });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:8000"}/ask-stream`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
       );
 
-      addMessage({
-        role: "ai",
-        content: aiResponseText,
-        suggestions: data.follow_up_suggestions,
-      });
+      if (!response.ok) throw new Error("Failed to connect to AI");
 
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamedAnswer = "";
+
+      setLoadingState(""); // Hide loading once stream starts
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        streamedAnswer += chunk;
+        updateLastMessage(streamedAnswer);
+      }
+
+      // After streaming is done, if we want follow-ups, we could fetch them separately
+      // or just leave them for now. For the fastest response, we skip sequential follow-up generation.
+      
       if (autoSpeak) {
-        if (!aiResponseText.trim().startsWith("[")) {
-          speakText(aiResponseText);
+        if (!streamedAnswer.trim().startsWith("[")) {
+          speakText(streamedAnswer);
         }
         setAutoSpeak(false);
       }
     } catch (err) {
       toast.error("Failed to fetch answer.");
-    } finally {
-      clearInterval(loadingInterval);
       setLoadingState("");
-      setInput("");
+    } finally {
+      setLoadingState("");
     }
   };
 

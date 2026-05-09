@@ -70,6 +70,30 @@ export const useStore = create(
         });
       },
 
+      updateLastMessage: (content) => {
+        set((state) => {
+          const newMessages = [...state.messages];
+          if (newMessages.length === 0) return state;
+          
+          const lastIndex = newMessages.length - 1;
+          newMessages[lastIndex] = { ...newMessages[lastIndex], content };
+          
+          const sid = state.session?.session_id;
+          if (!sid) return { messages: newMessages };
+
+          return {
+            messages: newMessages,
+            chatHistory: {
+              ...state.chatHistory,
+              [sid]: {
+                ...state.chatHistory[sid],
+                messages: newMessages,
+              },
+            },
+          };
+        });
+      },
+
       loadChat: (sid) => {
         const chat = get().chatHistory[sid];
         if (chat) {

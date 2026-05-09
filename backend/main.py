@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import json
 import random
+import asyncio
 
 from rag_engine import RAGEngine
 from memory_manager import ConversationMemory
@@ -121,16 +123,18 @@ async def create_session(req: dict):
     return {"session_id": session_id, "student_name": student_name}
 
 
-@app.post("/ask")
-async def ask_question(req: AskRequest):
-    history = memory_manager.get_history(req.session_id)
+@app.post("/ask-stream")
+async def ask_question_stream(req: AskRequest):
+    # Fetch history and retrieve documents in parallel
+    history_task = asyncio.to_thread(memory_manager.get_history, req.session_id)
+    retrieval_task = rag_engine.retrieve(req.question, subject_filter=req.subject)
+    
+    history, retrieved = await asyncio.gather(history_task, retrieval_task)
+    
     topic = memory_manager._extract_topic(req.question)
-
-    # Threshold = 3 questions (2 previous + current)
     topic_count = sum(1 for h in history if h.get("topic") == topic)
     is_weak = topic_count >= 2
-
-    retrieved = rag_engine.retrieve(req.question, subject_filter=req.subject)
+    
     prompt = _build_prompt(
         req.question,
         retrieved["chunks"],
@@ -140,14 +144,60 @@ async def ask_question(req: AskRequest):
         is_weak,
     )
 
-    ai_res = await ai_client.complete(prompt)
-    follow_ups = await _generate_follow_ups(req.question, ai_res["text"], ai_client)
+    async def stream_generator():
+        full_answer = ""
+        async for chunk in ai_client.stream_complete(prompt):
+            full_answer += chunk
+            yield chunk
+        
+        # After stream ends, we can record the turn in background
+        # Note: In a real app, you might want to send follow-ups too, 
+        # but for simplicity let's just finish the stream.
+        await asyncio.to_thread(memory_manager.add_turn, req.session_id, req.question, full_answer)
+        await asyncio.to_thread(insight_tracker.record_question, req.session_id, req.question, req.subject)
 
-    memory_manager.add_turn(req.session_id, req.question, ai_res["text"])
-    insight_tracker.record_question(req.session_id, req.question, req.subject)
+    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+
+
+@app.post("/ask")
+async def ask_question(req: AskRequest):
+    # Fetch history and retrieve documents in parallel
+    history_task = asyncio.to_thread(memory_manager.get_history, req.session_id)
+    retrieval_task = rag_engine.retrieve(req.question, subject_filter=req.subject)
+    
+    history, retrieved = await asyncio.gather(history_task, retrieval_task)
+    
+    topic = memory_manager._extract_topic(req.question)
+    topic_count = sum(1 for h in history if h.get("topic") == topic)
+    is_weak = topic_count >= 2
+
+    prompt = _build_prompt(
+        req.question,
+        retrieved["chunks"],
+        history,
+        req.student_level,
+        req.explanation_mode,
+        is_weak,
+    )
+
+    # 1. Generate main answer
+    ai_res = await ai_client.complete(prompt)
+    answer_text = ai_res["text"]
+
+    # 2. Start follow-ups and background tasks
+    # We can use a smaller max_tokens for follow-ups to speed them up
+    follow_ups_task = _generate_follow_ups(req.question, answer_text, ai_client)
+    
+    # Run these in background without blocking if we didn't need them in response,
+    # but we DO need follow_ups. However, we can run turn recording in background.
+    follow_ups = await follow_ups_task
+
+    # Fire and forget turn recording and insights
+    asyncio.create_task(asyncio.to_thread(memory_manager.add_turn, req.session_id, req.question, answer_text))
+    asyncio.create_task(asyncio.to_thread(insight_tracker.record_question, req.session_id, req.question, req.subject))
 
     return {
-        "answer": ai_res["text"],
+        "answer": answer_text,
         "web_sources": ai_res["web_sources"],
         "follow_up_suggestions": follow_ups,
         "is_weak": is_weak,
@@ -181,7 +231,7 @@ async def upload_document(subject: str, file: UploadFile = File(...)):
         else:
             text = content.decode("utf-8")
 
-        doc_id = rag_engine.add_document(
+        doc_id = await rag_engine.add_document(
             text, {"filename": file.filename, "subject": subject}
         )
 

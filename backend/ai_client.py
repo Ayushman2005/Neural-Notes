@@ -25,6 +25,28 @@ class AIClient:
         else:
             return await self._complete_ollama(prompt, max_tokens)
 
+    async def stream_complete(self, prompt: str, max_tokens: int = 1500):
+        """Streaming completion for Gemini."""
+        if self.use_gemini:
+            try:
+                response = await self.gemini_model.generate_content_async(
+                    prompt,
+                    generation_config=genai.types.GenerationConfig(
+                        max_output_tokens=max_tokens,
+                        temperature=0.7,
+                    ),
+                    stream=True
+                )
+                async for chunk in response:
+                    if chunk.text:
+                        yield chunk.text
+            except Exception as e:
+                yield f"[Gemini Error] {str(e)}"
+        else:
+            # Fallback for Ollama if streaming not implemented or just return whole thing
+            res = await self._complete_ollama(prompt, max_tokens)
+            yield res["text"]
+
     async def _complete_gemini(self, prompt: str, max_tokens: int) -> dict:
         try:
             # We use a thread-safe wrapper or just call it since it's a simple API call
