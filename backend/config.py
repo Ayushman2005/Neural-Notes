@@ -20,7 +20,7 @@ class Config:
     )
 
     # ── AI Model ──────────────────────────────────────────────────────────────
-    gemini_model: str = "gemini-flash-lite-latest"
+    gemini_model: str = "gemini-1.5-flash"  # Optimized for performance
     max_tokens: int = 1500
 
     # ── RAG ───────────────────────────────────────────────────────────────────
@@ -50,13 +50,22 @@ class Config:
     )
 
     def validate(self):
-        if not self.gemini_api_key:
-            raise ValueError(
-                "GEMINI_API_KEY environment variable is not set. "
-                "Run: export GEMINI_API_KEY='AIzaSy...'"
-            )
-        return self
+        """Validate critical settings. Logs warning if misconfigured."""
+        if not self.gemini_api_key or len(self.gemini_api_key) < 10 or "YOUR_API_KEY" in self.gemini_api_key:
+            print("\n" + "!"*60)
+            print("  CRITICAL ERROR: GEMINI_API_KEY is not set correctly!")
+            print("  In Render: Environment -> Add Environment Variable")
+            print("  Key: GEMINI_API_KEY | Value: [Your Actual AIza... Key]")
+            print("!"*60 + "\n")
+            return False
+        
+        if not self.gemini_api_key.startswith("AIza"):
+            print(f"[CONFIG] WARNING: GEMINI_API_KEY starts with unexpected characters. Check your Render settings.")
+            
+        return True
 
 
 # Singleton instance
 settings = Config()
+# Initial validation
+settings.validate()

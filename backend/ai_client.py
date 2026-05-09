@@ -41,17 +41,18 @@ class AIClient:
                     if chunk.text:
                         yield chunk.text
             except Exception as e:
-                yield f"[Gemini Error] {str(e)}"
+                error_msg = str(e)
+                if "API_KEY_INVALID" in error_msg or "400" in error_msg:
+                    yield "[Deployment Error] Gemini API Key is invalid or missing. Please set GEMINI_API_KEY in Render."
+                else:
+                    yield f"[Gemini Error] {error_msg}"
         else:
-            # Fallback for Ollama if streaming not implemented or just return whole thing
+            # Fallback for Ollama
             res = await self._complete_ollama(prompt, max_tokens)
             yield res["text"]
 
     async def _complete_gemini(self, prompt: str, max_tokens: int) -> dict:
         try:
-            # We use a thread-safe wrapper or just call it since it's a simple API call
-            # Note: generativeai's generate_content is synchronous by default, 
-            # but we can use generate_content_async.
             response = await self.gemini_model.generate_content_async(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -61,7 +62,10 @@ class AIClient:
             )
             return {"text": response.text, "web_sources": []}
         except Exception as e:
-            return {"text": f"[Gemini Error] {str(e)}", "web_sources": []}
+            error_msg = str(e)
+            if "API_KEY_INVALID" in error_msg or "400" in error_msg:
+                return {"text": "[Deployment Error] Gemini API Key is missing or invalid. Check Render settings.", "web_sources": []}
+            return {"text": f"[Gemini Error] {error_msg}", "web_sources": []}
 
     async def _complete_ollama(self, prompt: str, max_tokens: int) -> dict:
         try:
